@@ -1,10 +1,14 @@
-import React, {useState} from "react";
+import React, {useState, useCallback} from "react";
 import "./App.css";
-import List from "./components/List";
+import Lists from "./components/Lists";
 import Form from "./components/Form";
 
+const initialTodoData = localStorage.getItem("todoData") ? JSON.parse(localStorage.getItem("todoData")) : [];
+
 export default function App() {
-  const [todoData, setTodoData] = useState([]);
+  console.log("App Component");
+
+  const [todoData, setTodoData] = useState(initialTodoData);
   const [value, setValue] = useState("");
 
   const handleSubmit = (e) => {
@@ -24,11 +28,25 @@ export default function App() {
     }
 
     // 원래 있던 할 일에 새로운 할 일 더해주기 및 input 초기화
+    // 아래에서 ...은 "전개 연산자" 
     setTodoData(prev => 
       [...prev, newTodo]
     );
+    localStorage.setItem('todoData', JSON.stringify([...todoData, newTodo]));
+
+    // ipnut 초기화
     setValue("");
-    // 위에서 ...은 "전개 연산자" 
+  }
+
+  const handleClick = useCallback((id) => {
+    let newTodoData = todoData.filter(data => data.id !== id);
+    setTodoData(newTodoData);
+    localStorage.setItem('todoData', JSON.stringify(newTodoData));
+  }, [todoData])
+
+  const handleRemoveClick = () => {
+    setTodoData([]);
+    localStorage.setItem('todoData', JSON.stringify([]));
   }
 
   return(
@@ -36,8 +54,9 @@ export default function App() {
       <div className="w-full p-6 m-4 bg-white rounded shadow lg:w-3/4 lg:max-w-lg">
         <div className="flex justify-between mb-3">
           <h1>할일 목록</h1>
+          <button onClick={handleRemoveClick}>Delete All</button>
         </div>
-        <List todoData={todoData} setTodoData={setTodoData}/>
+        <Lists handleClick={handleClick} todoData={todoData} setTodoData={setTodoData}/>
         <Form handleSubmit={handleSubmit} value={value} setValue={setValue} />
       </div>
     </div>
